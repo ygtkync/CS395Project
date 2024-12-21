@@ -8,151 +8,127 @@
         body {
             font-family: Arial, sans-serif;
             background-color: #f4f4f9;
-            color: #333;
             margin: 0;
             padding: 0;
+            color: #333;
         }
-        header {
+
+        h1 {
+            text-align: center;
             background-color: #4CAF50;
             color: white;
-            padding: 20px;
-            text-align: center;
+            margin: 0;
+            padding: 20px 0;
         }
-        .container {
-            margin: 20px auto;
-            max-width: 1200px;
-            padding: 20px;
+
+        h3 {
+            color: #4CAF50;
+            margin-top: 20px;
+        }
+
+        #stats, #processes, #logs, #lastUsers {
             background: white;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin: 20px auto;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
         }
-        .stats {
-            margin-top: 20px;
+
+        #stats .stat {
+            margin-bottom: 10px;
         }
-        .stat {
-            margin: 15px 0;
-            font-size: 1.2em;
-        }
-        .error {
-            margin: 15px 0;
-            color: red;
-            font-weight: bold;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        th, td {
-            border: 1px solid #ddd;
+
+        select {
             padding: 10px;
-            text-align: left;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px;
+            display: block;
+            max-width: 200px;
+            margin: 10px auto;
         }
-        th {
-            background-color: #f2f2f2;
-            cursor: pointer;
+
+        p {
+            margin: 5px 0;
+            font-size: 0.95em;
         }
-        tr:nth-child(even) {
-            background-color: #f9f9f9;
+
+        div {
+            word-wrap: break-word;
         }
-        tr:hover {
-            background-color: #f1f1f1;
-        }
+
         footer {
-            margin-top: 20px;
             text-align: center;
-            font-size: 0.9em;
-            color: #777;
+            margin-top: 20px;
+            padding: 10px;
+            background-color: #4CAF50;
+            color: white;
+            position: relative;
+            bottom: 0;
+            width: 100%;
         }
     </style>
 </head>
 <body>
-    <header>
-        <h1>Real-time Server Monitoring</h1>
-    </header>
-    <div class="container">
-        <div class="error" id="error"></div>
-        <div class="stats" id="stats"></div>
-    </div>
-    <footer>
-        &copy; 2024 Server Monitor - Built with ♥ for CS-395 Project
-    </footer>
-    <script>
-        const server_url = 'wss://' + location.host + location.pathname.replace('monitor', 'ws');
-        const statsDiv = document.getElementById('stats');
-        const errorDiv = document.getElementById('error');
-        const ws = new WebSocket(server_url);
+<h1>Real-time Server Statistics</h1>
+<div id="stats"></div>
+<h3>Processes</h3>
+<select id="sortBy" onchange="changeSort()">
+    <option value="cpu">Sort by CPU</option>
+    <option value="memory">Sort by Memory</option>
+    <option value="pid">Sort by PID</option>
+</select>
+<div id="processes"></div>
+<h3>System Logs</h3>
+<div id="logs"></div>
+<h3>Last 10 Users</h3>
+<div id="lastUsers"></div>
+<footer>
+    &copy; 2024 Server Monitor. All rights reserved.
+</footer>
+<script>
+    const ws = new WebSocket('wss://' + location.host + '/ws');
+    const statsDiv = document.getElementById('stats');
+    const processesDiv = document.getElementById('processes');
+    const logsDiv = document.getElementById('logs');
+    const lastUsersDiv = document.getElementById('lastUsers');
+    const sortBy = document.getElementById('sortBy');
 
-        ws.onopen = () => {
-            statsDiv.innerHTML = <div class="stat">Connected</div>;
-        };
+    ws.onopen = () => fetchStats();
+    ws.onmessage = (e) => {
+        const [type, data] = JSON.parse(e.data);
+        if (type === 'stats') updateStats(data);
+    };
 
-        ws.onerror = (e) => {
-            errorDiv.innerHTML = <div class="stat" style="color:red;">Error: ${e.message}</div>;
-        };
+    function fetchStats() { ws.send(sortBy.value); }
+    function changeSort() { fetchStats(); }
 
-        ws.onmessage = (event) => {
-            const message = JSON.parse(event.data);
+    function updateStats(stats) {
+        statsDiv.innerHTML = `
+        <div class="stat"><strong>CPU:</strong> ${stats.cpu}%</div>
+        <div class="stat"><strong>Memory Usage:</strong>
+            ${((stats.memory.used / stats.memory.total) * 100).toFixed(2)}%
+            (${(stats.memory.used / 1e9).toFixed(2)} GB / ${(stats.memory.total / 1e9).toFixed(2)} GB)
+        </div>
+        <div class="stat"><strong>Disk Usage:</strong>
+            ${stats.disk.percent}%
+            (${(stats.disk.used / 1e9).toFixed(2)} GB / ${(stats.disk.total / 1e9).toFixed(2)} GB)
+        </div>
+        <div class="stat"><strong>Load Average:</strong>
+            1m: ${stats.load_avg[0].toFixed(1)},
+            5m: ${stats.load_avg[1].toFixed(1)},
+            15m: ${stats.load_avg[2].toFixed(1)}
+        </div>
+        <div class="stat"><strong>Uptime:</strong> ${stats.uptime}</div>
+    `;
+        processesDiv.innerHTML = stats.processes.map(p =>
+            `<p>${p.name} (PID: ${p.pid}) - CPU: ${p.cpu_percent}% - Mem: ${p.memory_percent}%</p>`).join('');
+        logsDiv.innerHTML = stats.system_logs.join('<br>');
+        lastUsersDiv.innerHTML = stats.last_10_users.join('<br>');
+    }
 
-            if (message[0] === 'stats') {
-                updateStats(message[1]);
-            } else {
-                errorDiv.innerHTML = <div class="stat" style="color:red;">Error: ${message}</div>;
-            }
-        };
-
-        ws.onclose = () => {
-            statsDiv.innerHTML = <div class="stat" style="color:red;">Connection closed</div>;
-        };
-
-        function getStats() {
-            ws.send('stats');
-        }
-
-        function updateStats(stats) {
-            statsDiv.innerHTML = `
-                <div class="stat"><strong>CPU Usage:</strong> ${stats.cpu}%</div>
-                <div class="stat"><strong>Memory Usage:</strong> 
-                    ${((stats.memory.used / stats.memory.total) * 100).toFixed(2)}% 
-                    (${(stats.memory.used / 1e9).toFixed(2)} GB / ${(stats.memory.total / 1e9).toFixed(2)} GB)
-                </div>
-                <div class="stat"><strong>Disk Usage:</strong> 
-                    ${stats.disk.percent}% 
-                    (${(stats.disk.used / 1e9).toFixed(2)} GB / ${(stats.disk.total / 1e9).toFixed(2)} GB)
-                </div>
-                <div class="stat"><strong>Load Average:</strong> 
-                    1m: ${stats.load_avg[0].toFixed(1)}, 5m: ${stats.load_avg[1].toFixed(1)}, 15m: ${stats.load_avg[2].toFixed(1)}
-                </div>
-                <div class="stat"><strong>System Uptime:</strong> ${stats.uptime}</div>
-                <div class="stat"><strong>Logged-in Users:</strong> ${stats.logged_in_users.join(', ')}</div>
-                <div class="stat"><strong>Last 10 Users:</strong><br> ${stats.last_10_users.join('<br>')}</div>
-                <div class="stat"><strong>Process Summary:</strong> Total: ${stats.process_summary.total}, States: ${JSON.stringify(stats.process_summary.states)}</div>
-                <table>
-                    <thead>
-                        <tr>
-                            <th onclick="sortTable(0)">PID</th>
-                            <th onclick="sortTable(1)">Name</th>
-                            <th onclick="sortTable(2)">CPU</th>
-                            <th onclick="sortTable(3)">Memory</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${stats.processes.map(process => `
-                            <tr>
-                                <td>${process.pid}</td>
-                                <td>${process.name}</td>
-                                <td>${process.cpu_percent}%</td>
-                                <td>${process.memory_percent.toFixed(2)}%</td>
-                            </tr>
-                        `).join('')}
-                    </tbody>
-                </table>
-            `;
-        }
-
-        
-
-        setInterval(getStats, 1000);
-    </script>
+    setInterval(fetchStats, 1000);
+</script>
 </body>
 </html>
