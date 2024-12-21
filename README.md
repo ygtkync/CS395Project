@@ -1,42 +1,96 @@
-CS395 Project - System Monitoring
-Description
+# Server Monitor Project
 
-This project monitors system statistics like CPU usage, memory usage, and disk usage. It includes a backend server (in Python) that fetches system stats and a frontend (HTML) that displays them in a web browser.
-How to Run the Code
+## Overview
+The **Server Monitor Project** is a real-time web-based application designed to monitor server performance metrics, manage processes, and display system logs and user activity. It provides a graphical interface and uses WebSockets for live updates. The backend is powered by Python with the `aiohttp` library, and it integrates various system tools to gather detailed server statistics.
 
-Follow these steps to run the project:
-1. Clone the repository
+## Features
+- **Real-time Statistics:** Displays live CPU, memory, and disk usage, along with system load averages and uptime.
+- **Process Management:** Lists top processes sorted by CPU, memory, or PID usage.
+- **System Logs:** Displays the last 50 lines of system logs.
+- **User Activity:** Shows the last 10 logged-in users and currently logged-in users.
+- **Secure Authentication:** Basic authentication is required to access the monitor page.
+- **Responsive Design:** User-friendly and visually appealing interface designed with HTML and CSS.
 
-First, clone the project to your local machine:
+## Prerequisites
+- Python 3.7+
+- `aiohttp` library
+- `psutil` library
+- SSL certificate and private key for secure connections
 
-git clone https://github.com/ygtkync/CS395Project.git
-cd CS395Project
+## Installation
+1. Clone the repository:
+   ```bash
+   git clone <repository-url>
+   cd <repository-folder>
+   ```
+2. Install the required Python packages:
+   ```bash
+   pip install aiohttp psutil
+   ```
+3. Place your SSL certificate and private key in the appropriate directory:
+   - **Certificate file:** `cert/localhost.crt`
+   - **Key file:** `cert/localhost.key`
 
-2. Install dependencies
+## Usage
+1. Start the server:
+   ```bash
+   python <filename>.py
+   ```
+2. Open a web browser and navigate to:
+   ```
+   https://localhost:8765/monitor
+   ```
+3. Log in using one of the following credentials:
 
-Install the necessary Python dependencies. You’ll need Python 3.x installed on your system. Run the following command:
+   | Username | Password |
+   |----------|----------|
+   | admin    | password |
+   | yigit    | 123456   |
+   | deneme   | deneme   |
+   | elayadi  | 654321   |
 
-pip install -r requirements.txt
+4. View live server statistics and manage processes.
 
-This will install the required libraries, including psutil to fetch system stats.
-3. Run the backend server
+## Project Structure
+```
+<project-folder>/
+├── monitor.html          # Frontend interface
+├── <filename>.py         # Main Python application
+├── cert/
+│   ├── localhost.crt     # SSL certificate
+│   └── localhost.key     # SSL private key
+```
 
-Start the backend server by running:
+## API Endpoints
+### HTTP Endpoints
+- `/hello`: Basic test endpoint that returns a "Hello" response.
+- `/monitor`: Serves the monitoring HTML page (requires authentication).
 
-python3 src/server.py
+### WebSocket Endpoint
+- `/ws`: WebSocket endpoint for real-time updates. Sends system statistics as JSON.
 
-The server will start, and it will begin monitoring your system stats.
-4. Open the frontend
+## System Metrics
+- **CPU Usage:** Real-time CPU utilization percentage.
+- **Memory Usage:** Total, used, and available memory.
+- **Disk Usage:** Total, used, and available disk space.
+- **Load Averages:** System load averages over 1, 5, and 15 minutes.
+- **Uptime:** Server uptime since the last reboot.
 
-Open your web browser and go to http://localhost:5000. You should see the system stats displayed in the frontend.
-Project Structure
+## Security
+This application uses Basic Authentication to secure access to the monitoring page. User credentials are hardcoded in the `valid_users` dictionary within the Python script. For production use, replace this mechanism with a more secure authentication method.
 
-CS395Project/
-│
-├── src/
-│   ├── server.py            # Python backend that fetches system stats
-│   ├── monitor.html         # HTML frontend to display stats
-│   └── utils.py             # Helper functions for fetching system data
-│
-├── requirements.txt         # List of required Python libraries
-└── README.md                # This file
+## Known Issues
+- **System Logs:** Logs retrieval may fail if the file path does not exist or lacks read permissions.
+- **Process Data:** Process information may occasionally fail due to system-level changes during execution.
+
+## Future Improvements
+- Add process management functionality (e.g., kill or restart processes).
+- Integrate advanced authentication methods (e.g., OAuth or JWT).
+- Improve log parsing and presentation with filtering options.
+- Extend compatibility with multiple operating systems.
+
+## License
+This project is licensed under the MIT License.
+
+
+
