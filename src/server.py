@@ -54,7 +54,7 @@ async def send_stats(request):
     await ws.prepare(request)
 
     async for msg in ws:
-        if msg.type == web.WSMsgType.text and msg.data == "stats":
+        if msg.type == web.WSMsgType.text :
             data = await get_system_stats()
             response = ["stats", data]
             await ws.send_str(json.dumps(response))
@@ -121,7 +121,7 @@ def get_last_10_users():
 # Retrieves the last 50 lines of the system log
 def get_system_logs():
     try:
-        with open("/var/log/syslog", "r") as f:
+        with open("/var/log/system.log", "r") as f:
             return f.readlines()[-50:]
     except Exception:
         return ["System logs cannot be retrieved."]
