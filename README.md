@@ -1,36 +1,42 @@
-# BrowTop - a Browser-based System Performance Monitor
-BrowTop is an interactive graphical system performance monitor.
+CS395 Project - System Monitoring
+Description
 
-## How to run BrowTop
-1. Install the dependencies
+This project monitors system statistics like CPU usage, memory usage, and disk usage. It includes a backend server (in Python) that fetches system stats and a frontend (HTML) that displays them in a web browser.
+How to Run the Code
 
-First, you need to install the required Python packages.
+Follow these steps to run the project:
+1. Clone the repository
 
-```bash
-pip3 install -r requirements.txt
-```
+First, clone the project to your local machine:
 
-2. Create a locally-trusted TLS certificate
+git clone https://github.com/ygtkync/CS395Project.git
+cd CS395Project
 
-You can create locally-trusted TLS certificates by running the following command.
+2. Install dependencies
 
-```bash
-mkcert -install
-mkcert -key-file cert/localhost.key -cert-file cert/localhost.crt localhost
-```
+Install the necessary Python dependencies. You’ll need Python 3.x installed on your system. Run the following command:
 
-Installation instructions for mkcert can be found at [here](https://github.com/FiloSottile/mkcert).
+pip install -r requirements.txt
 
-3. Run the BrowTop server 
+This will install the required libraries, including psutil to fetch system stats.
+3. Run the backend server
 
-You can run the BrowTop server by running the following command.
+Start the backend server by running:
 
-```bash
 python3 src/server.py
-```
 
-This command will start the browtop server on `https://localhost:8765`. 
+The server will start, and it will begin monitoring your system stats.
+4. Open the frontend
 
-Afterwards, you can open the browtop monitor by visiting `http://localhost:8765/monitor` in your web browser.
+Open your web browser and go to http://localhost:5000. You should see the system stats displayed in the frontend.
+Project Structure
 
-
+CS395Project/
+│
+├── src/
+│   ├── server.py            # Python backend that fetches system stats
+│   ├── monitor.html         # HTML frontend to display stats
+│   └── utils.py             # Helper functions for fetching system data
+│
+├── requirements.txt         # List of required Python libraries
+└── README.md                # This file
