@@ -1,14 +1,13 @@
 version: '3.8'
 
 services:
-  server:
-    build:
-      context: .
-      dockerfile: Dockerfile
+  app:
+    build: .
+    pid: host
     ports:
       - "8765:8765"
     volumes:
       - .:/app
     environment:
       - PYTHONUNBUFFERED=1
-    restart: unless-stopped
+    command: ["python", "src/server.py"]
