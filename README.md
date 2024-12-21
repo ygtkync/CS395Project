@@ -34,7 +34,7 @@ The **Server Monitor Project** is a real-time web-based application designed to 
 ## Usage
 1. Start the server:
    ```bash
-   python <filename>.py
+   python server.py
    ```
 2. Open a web browser and navigate to:
    ```
