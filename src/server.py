@@ -23,7 +23,7 @@ async def monitor(request):
             text="Unauthorized: Please enter your username and password."
         )
 
-    path = pathlib.Path(_file_).parents[0].joinpath("monitor.html")
+    path = pathlib.Path(__file__).parents[0].joinpath("monitor.html")
     return web.FileResponse(path)
 
 # Validates user credentials
@@ -37,7 +37,7 @@ def check_authentication(auth_header):
 
         # Secure user information
         valid_users = {
-            "admin": "password",  
+            "admin": "password",
             "yigit": "123456",
             "deneme": "deneme",
             "elayadi": "654321"
@@ -136,8 +136,8 @@ def format_uptime():
 # Creates SSL context for secure connections
 def create_ssl_context():
     ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_SERVER)
-    cert_file = pathlib.Path(_file_).parents[1].joinpath("cert/localhost.crt")
-    key_file = pathlib.Path(_file_).parents[1].joinpath("cert/localhost.key")
+    cert_file = pathlib.Path(__file__).parents[1].joinpath("cert/localhost.crt")
+    key_file = pathlib.Path(__file__).parents[1].joinpath("cert/localhost.key")
     ssl_context.load_cert_chain(cert_file, key_file)
     return ssl_context
 
@@ -152,6 +152,6 @@ def run():
     ])
     web.run_app(app, port=8765, ssl_context=ssl_context)
 
-if _name_ == "_main_":
+if __name__ == "__main__":
     print("Server started at wss://localhost:8765")
     run()
