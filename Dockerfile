@@ -1,4 +1,3 @@
-
 FROM python:3.10-slim
 
 
@@ -17,4 +16,4 @@ COPY . .
 EXPOSE 8765
 
 
-CMD ["python", "server.py"]
+CMD ["python", "src/server.py"]
