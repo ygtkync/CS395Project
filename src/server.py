@@ -6,6 +6,7 @@ import ssl
 import subprocess
 import time
 
+import os
 import psutil
 from aiohttp import web
 
@@ -70,7 +71,7 @@ async def get_system_stats(sort_by="cpu"):
         "cpu": psutil.cpu_percent(interval=1),
         "memory": psutil.virtual_memory()._asdict(),
         "disk": psutil.disk_usage("/")._asdict(),
-        "load_avg": psutil.getloadavg(),
+        "load_avg": os.getloadavg(),
         "uptime": format_uptime(),
         "logged_in_users": get_logged_in_users(),
         "last_10_users": get_last_10_users(),
@@ -118,13 +119,18 @@ def get_last_10_users():
     except subprocess.SubprocessError:
         return ["Unable to obtain user information."]
 
-# Retrieves the last 50 lines of the system log
+# Retrieves the last 50 lines of the system logs
 def get_system_logs():
+    log_path = "/host_logs/syslog"  
+    if not os.path.exists(log_path):
+        return ["System logs are unavailable in this environment."]
     try:
-        with open("/var/log/system.log", "r") as f:
+        with open(log_path, "r") as f:
             return f.readlines()[-50:]
-    except Exception:
-        return ["System logs cannot be retrieved."]
+    except Exception as e:
+        return [f"Error retrieving logs: {e}"]
+
+
 
 # Formats system uptime
 def format_uptime():
@@ -150,7 +156,7 @@ def run():
         web.get("/monitor", monitor),
         web.get("/hello", hello),
     ])
-    web.run_app(app, port=8765, ssl_context=ssl_context)
+    web.run_app(app, host="0.0.0.0", port=8765, ssl_context=ssl_context)
 
 
 

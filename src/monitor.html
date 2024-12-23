@@ -6,129 +6,154 @@
     <title>Server Monitor</title>
     <style>
         body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f9;
+            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            color: #333;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: #ffffff;
         }
 
         h1 {
             text-align: center;
-            background-color: #4CAF50;
-            color: white;
             margin: 0;
-            padding: 20px 0;
-        }
-
-        h3 {
-            color: #4CAF50;
-            margin-top: 20px;
-        }
-
-        #stats, #processes, #logs, #lastUsers {
-            background: white;
-            margin: 20px auto;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-            max-width: 800px;
+            font-size: 2.5rem;
+            background: #111;
+            color: #4caf50;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
 
-        #stats .stat {
-            margin-bottom: 10px;
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .card {
+            background: #ffffff;
+            color: #333;
+            border-radius: 12px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            padding: 20px;
+            max-width: 400px;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .card h3 {
+            margin-top: 0;
+            color: #4caf50;
+            font-size: 1.5rem;
+        }
+
+        .card p {
+            margin: 10px 0;
+            font-size: 1rem;
         }
 
         select {
+            width: 100%;
             padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-            margin-bottom: 10px;
-            display: block;
-            max-width: 200px;
-            margin: 10px auto;
-        }
-
-        p {
-            margin: 5px 0;
-            font-size: 0.95em;
-        }
-
-        div {
-            word-wrap: break-word;
+            margin-top: 10px;
+            border: 2px solid #4caf50;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: #f9f9f9;
+            color: #333;
         }
 
         footer {
             text-align: center;
-            margin-top: 20px;
             padding: 10px;
-            background-color: #4CAF50;
-            color: white;
-            position: relative;
+            background: #111;
+            color: #4caf50;
+            position: fixed;
             bottom: 0;
             width: 100%;
+            box-shadow: 0 -4px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        @media (max-width: 768px) {
+            .card {
+                max-width: 90%;
+            }
         }
     </style>
 </head>
 <body>
-<h1>Real-time Server Statistics</h1>
-<div id="stats"></div>
-<h3>Processes</h3>
-<select id="sortBy" onchange="changeSort()">
-    <option value="cpu">Sort by CPU</option>
-    <option value="memory">Sort by Memory</option>
-    <option value="pid">Sort by PID</option>
-</select>
-<div id="processes"></div>
-<h3>System Logs</h3>
-<div id="logs"></div>
-<h3>Last 10 Users</h3>
-<div id="lastUsers"></div>
-<footer>
-    &copy; 2024 Server Monitor. All rights reserved.
-</footer>
-<script>
-    const ws = new WebSocket('wss://' + location.host + '/ws');
-    const statsDiv = document.getElementById('stats');
-    const processesDiv = document.getElementById('processes');
-    const logsDiv = document.getElementById('logs');
-    const lastUsersDiv = document.getElementById('lastUsers');
-    const sortBy = document.getElementById('sortBy');
-
-    ws.onopen = () => fetchStats();
-    ws.onmessage = (e) => {
-        const [type, data] = JSON.parse(e.data);
-        if (type === 'stats') updateStats(data);
-    };
-
-    function fetchStats() { ws.send(sortBy.value); }
-    function changeSort() { fetchStats(); }
-
-    function updateStats(stats) {
-        statsDiv.innerHTML = `
-        <div class="stat"><strong>CPU:</strong> ${stats.cpu}%</div>
-        <div class="stat"><strong>Memory Usage:</strong>
-            ${((stats.memory.used / stats.memory.total) * 100).toFixed(2)}%
-            (${(stats.memory.used / 1e9).toFixed(2)} GB / ${(stats.memory.total / 1e9).toFixed(2)} GB)
+    <h1>Real-time Server Monitor</h1>
+    <div class="container">
+        <div class="card" id="stats">
+            <h3>System Statistics</h3>
+            <div class="content"></div>
         </div>
-        <div class="stat"><strong>Disk Usage:</strong>
-            ${stats.disk.percent}%
-            (${(stats.disk.used / 1e9).toFixed(2)} GB / ${(stats.disk.total / 1e9).toFixed(2)} GB)
+        <div class="card">
+            <h3>Processes</h3>
+            <select id="sortBy" onchange="changeSort()">
+                <option value="cpu">Sort by CPU</option>
+                <option value="memory">Sort by Memory</option>
+                <option value="pid">Sort by PID</option>
+            </select>
+            <div id="processes"></div>
         </div>
-        <div class="stat"><strong>Load Average:</strong>
-            1m: ${stats.load_avg[0].toFixed(1)},
-            5m: ${stats.load_avg[1].toFixed(1)},
-            15m: ${stats.load_avg[2].toFixed(1)}
+        <div class="card" id="logs">
+            <h3>System Logs</h3>
+            <div class="content"></div>
         </div>
-        <div class="stat"><strong>Uptime:</strong> ${stats.uptime}</div>
-    `;
-        processesDiv.innerHTML = stats.processes.map(p =>
-            `<p>${p.name} (PID: ${p.pid}) - CPU: ${p.cpu_percent}% - Mem: ${p.memory_percent}%</p>`).join('');
-        logsDiv.innerHTML = stats.system_logs.join('<br>');
-        lastUsersDiv.innerHTML = stats.last_10_users.join('<br>');
-    }
+        <div class="card" id="lastUsers">
+            <h3>Last 10 Users</h3>
+            <div class="content"></div>
+        </div>
+    </div>
+    <footer>
+        &copy; CS395 Project - Server Monitor
+    </footer>
 
-    setInterval(fetchStats, 1000);
-</script>
+    <script>
+        const ws = new WebSocket('wss://' + location.host + '/ws');
+        const statsDiv = document.querySelector('#stats .content');
+        const processesDiv = document.getElementById('processes');
+        const logsDiv = document.querySelector('#logs .content');
+        const lastUsersDiv = document.querySelector('#lastUsers .content');
+        const sortBy = document.getElementById('sortBy');
+
+        ws.onopen = () => fetchStats();
+        ws.onmessage = (e) => {
+            const [type, data] = JSON.parse(e.data);
+            if (type === 'stats') updateStats(data);
+        };
+
+        function fetchStats() { ws.send(sortBy.value); }
+        function changeSort() { fetchStats(); }
+
+        function updateStats(stats) {
+            statsDiv.innerHTML = `
+                <p><strong>CPU:</strong> ${stats.cpu}%</p>
+                <p><strong>Memory Usage:</strong> 
+                    ${(stats.memory.used / stats.memory.total * 100).toFixed(2)}%
+                    (${(stats.memory.used / 1e9).toFixed(2)} GB / ${(stats.memory.total / 1e9).toFixed(2)} GB)
+                </p>
+                <p><strong>Disk Usage:</strong> 
+                    ${stats.disk.percent}%
+                    (${(stats.disk.used / 1e9).toFixed(2)} GB / ${(stats.disk.total / 1e9).toFixed(2)} GB)
+                </p>
+                <p><strong>Load Average:</strong> 
+                    1m: ${stats.load_avg[0].toFixed(1)},
+                    5m: ${stats.load_avg[1].toFixed(1)},
+                    15m: ${stats.load_avg[2].toFixed(1)}
+                </p>
+                <p><strong>Uptime:</strong> ${stats.uptime}</p>
+            `;
+
+            processesDiv.innerHTML = stats.processes.map(p =>
+                `<p>${p.name} (PID: ${p.pid}) - CPU: ${p.cpu_percent}% - Mem: ${p.memory_percent}%</p>`).join('');
+            logsDiv.innerHTML = stats.system_logs.join('<br>');
+            lastUsersDiv.innerHTML = stats.last_10_users.join('<br>');
+        }
+
+        setInterval(fetchStats, 1000);
+    </script>
 </body>
 </html>

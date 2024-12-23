@@ -1,4 +1,4 @@
-version: '3.8'
+version: '2.2'
 
 services:
   app:
@@ -8,6 +8,7 @@ services:
       - "8765:8765"
     volumes:
       - .:/app
+      - /var/log:/host_logs:ro  
     environment:
       - PYTHONUNBUFFERED=1
     command: ["python", "src/server.py"]
