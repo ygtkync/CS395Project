@@ -5,7 +5,7 @@ services:
     build: .
     pid: host
     ports:
-      - "8765:8765"
+      - "1007:8765"
     volumes:
       - .:/app
       - /var/log:/host_logs:ro  
