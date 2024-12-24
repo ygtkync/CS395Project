@@ -112,7 +112,8 @@
     </footer>
 
     <script>
-        const ws = new WebSocket('wss://' + location.host + '/ws');
+        const serverUrl = 'wss://' + location.host + location.pathname.replace('monitor', 'ws');
+        const ws = new WebSocket(serverUrl);
         const statsDiv = document.querySelector('#stats .content');
         const processesDiv = document.getElementById('processes');
         const logsDiv = document.querySelector('#logs .content');
